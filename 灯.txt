@@ -1,0 +1,41 @@
+#define led_red 3     //Pin 9 连接上 led的红色引脚
+#define led_green 5
+#define led_blue 6
+ 
+ 
+void setup() {
+  pinMode(led_red,OUTPUT);  //设置为输出模式
+  pinMode(led_green,OUTPUT);
+  pinMode(led_blue,OUTPUT);
+  
+  analogWrite(led_red,255);     //首先，先把所有的灯都关闭
+  analogWrite(led_green,255);   //可以随意设置开启关闭哪些灯，搭配出不同组合有不同颜色
+  analogWrite(led_blue,255);
+}
+ 
+void loop() {
+  // put your main code here, to run repeatedly:
+ 
+  for(int i=200;i>0;i--)      //渐亮
+  {
+    analogWrite(led_red,i);     //慢慢开启红色和绿色会搭配出黄色
+    analogWrite(led_green,i);  
+    analogWrite(led_blue,255);  
+    delay(10);
+  }
+ 
+  for(int i=0;i<200;i++)   //渐灭
+  {
+    analogWrite(led_red,255);    //慢慢关闭绿色和蓝色会搭配出较鲜艳的蓝色
+    analogWrite(led_green,i);
+    analogWrite(led_blue,i);
+    delay(10);
+  }
+  for(int i=0;i<200;i++)   //渐灭
+  {
+    analogWrite(led_red,i);    //慢慢关闭绿色和蓝色会搭配出较鲜艳的蓝色
+    analogWrite(led_green,255);
+    analogWrite(led_blue,i);
+    delay(10);
+  }
+}
