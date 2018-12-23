@@ -1,0 +1,115 @@
+#include <ESP8266.h>
+#include <Arduino.h>
+#include <WiFiClient.h>
+#include <WiFi.h>
+#include <Wire.h> 
+
+#define SSID        "lu" //改为你的Wi-Fi名称
+#define PASSWORD    "88888888"//Wi-Fi密码
+#define HOST_NAME   "api.heclouds.com"
+#define DEVICEID    "503222943" //OneNet上的设备ID
+#define PROJECTID   "183644" //OneNet上的产品ID
+#define HOST_PORT   (80)
+String apiKey="kfO4m7i1671WRAJ=gS3B260jWzg=";//与你的设备绑定的APIKey  
+
+#include <SoftwareSerial.h>
+#define EspSerial mySerial
+#define UARTSPEED  9600
+SoftwareSerial mySerial(11, 10); 
+ESP8266 wifi(&EspSerial);
+
+const int tx = 11;
+const int rx = 10;
+
+WiFiClient client;
+int status = WL_IDLE_STATUS;
+
+void getHttp()   //获取数据
+  {
+   mySerial.print("AT+CIPSTART=\"TCP\",\"183.230.40.33\",80\r\n");//创建TCP链接，具体格式参照官方文档
+     if(wifi.createTCP(HOST_NAME, HOST_PORT))  
+        {
+                Serial.println("OK");
+                //client.println("GET /devices/7067020/datapoints HTTP/1.1");
+                //client.println("api-key:wiwZuvjHD9PN7tEHteZG6DmSRRU=");
+                //client.println("Host:api.heclouds.com");
+                //client.println("Connection:close");
+                //client.println();
+                //client.println();
+                /*******************/
+                client.print("GET /devices/");
+                client.print(DEVICEID);
+                client.print("/datapoints");
+                client.print("?datastream_id=water");
+                client.println("HTTP/1.1");
+                client.print("api-key:");
+                client.println(apiKey);
+                client.print("Host:");
+                client.println(HOST_NAME);
+                //client.println("Connection:close");
+                client.println();
+                client.println();
+                /*****************************/
+                Serial.println("Good!");
+        }
+        else
+        {
+         mySerial.print("AT+CIPSTART=\"TCP\",\"183.230.40.33\",80\r\n");//创建TCP链接，具体格式参照官方文档
+          Serial.println("AT+CIPSTART=\"TCP\",\"api.heclouds.com\",80\r\n");
+                client.stop();
+        }
+               
+        } 
+
+
+void setup()
+{ 
+  Serial.begin(115200);
+  Serial.println("disconnecting...");
+  mySerial.print("AT+CWMODE=3\r\n");//设置模式3，STA+AP，其实我们只用了STA模式
+  Serial.println("AT+CWMODE=3\r\n");
+  mySerial.print("AT+CWJAP=\"lu\",\"88888888\"\r\n");//输入你无线路由器的用户名和密码，一定要写正确，注意大小写
+  mySerial.print("AT+CIPSTART=\"TCP\",\"api.heclouds.com\",80\r\n");//创建TCP链接，具体格式参照官方文档
+  Serial.println("AT+CIPSTART=\"TCP\",\"api.heclouds.com\",80\r\n");
+  
+   
+}
+unsigned long now ,last;
+boolean lastClientStatus = false;
+
+
+  
+void loop()
+{
+     if ((!client.connected())&&(millis() - last) >= 1*1000)
+  {        
+          getHttp();
+  }
+
+  while (client.available())//接收onenet信息
+ {   
+        char val = client.read();//read()将信息存入val
+        if(val=='666')
+    {
+      analogWrite(3,255);//向水泵输出PMW波
+    }
+  
+    if(val=='stop')
+    {
+       analogWrite(3,0);
+     }     
+  }   
+ if ((!client.connected())&&(lastClientStatus))
+          Serial.println("Client disconnecting... ");
+if ((!client.connected())&&(lastClientStatus))
+  {
+          Serial.println("Client disconnecting... ");
+          client.stop();
+  }
+  lastClientStatus = client.connected();
+  }
+
+
+ 
+
+
